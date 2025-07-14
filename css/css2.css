@@ -1,0 +1,100 @@
+body {
+  font-family: 'Courier New',  monospace;
+  background: #998686;
+  color: #111;
+  overflow-x: hidden;
+}
+
+header {
+    background: #343232;
+    color: rgb(252, 240, 240);
+    padding: 1px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo img {
+  height: 90px;
+  width: auto;
+  display: block;
+}
+
+nav a {
+    color: #fff;
+    margin-left: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+nav a:hover {
+    color: #f8d20f;
+}
+
+main {
+    padding: 20px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+/* inscription */
+.ent {
+    background-color: #fff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 450px;
+    margin: 40px auto; 
+    
+}
+
+/* Titre du formulaire */
+.ent h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: #444;
+}
+
+/* Style du formulaire */
+.ent form {
+    display: flex;
+    flex-direction: column;
+}
+
+.ent input {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    transition: border 0.3s ease;
+}
+
+.ent input:focus {
+    border-color: #b6d40e;
+    outline: none;
+}
+
+.ent button {
+    padding: 12px;
+    background-color: #f8d20f;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.ent button:hover {
+    background-color: #47d314;
+}
