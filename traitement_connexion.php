@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST['password']);
 
     // a Requête pour vérifierl'utilisateur existe
-    $stmt = $conn->prepare("SELECT * FROM utilisateurs WHERE email = ?");
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

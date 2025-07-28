@@ -4,10 +4,23 @@ include('includes/db.php');
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nom = trim($_POST['nom']);
     $email = trim($_POST['email']);
-    $password = password_hash(trim($_POST['password']), PASSWORD_DEFAULT);
+    $password_raw = trim($_POST['password']);
+
+    // Vérification de champs
+    if (empty($nom) || empty($email) || empty($password_raw)) {
+        echo "Tous les champs sont obligatoires.";
+        exit;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "Adresse email invalide.";
+        exit;
+    }
+
+    $password = password_hash($password_raw, PASSWORD_DEFAULT);
 
     // Vérifier si l'email existe déjà
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->execute([$email]);
 
     if ($stmt->rowCount() > 0) {
@@ -15,9 +28,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
         if ($stmt->execute([$nom, $email, $password])) {
-            echo "Inscription réussie ! <a href='connexion.php'>Connectez-vous</a>";
+            echo "✅ Inscription réussie ! <a href='login.php'>Connectez-vous</a>";
         } else {
-            echo "Erreur lors de l'inscription.";
+            echo "❌ Une erreur est survenue. Veuillez réessayer.";
         }
     }
 }

@@ -1,18 +1,33 @@
 <?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header("Location: login.php");
+    exit();
+}
+?>
+
+<?php
+include 'includes/auth.php';
 include 'includes/header.php';
 include 'includes/db.php';
 
-// Compter produits
+// Compter tous les produits
 $count = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
 
-// Produits en rupture
+// Produits en rupture de stock
 $rupture = $pdo->query("SELECT COUNT(*) FROM products WHERE quantite = 0")->fetchColumn();
 
-// Produits stock faible
+// Produits avec stock faible
 $faible = $pdo->query("SELECT COUNT(*) FROM products WHERE quantite < seuil_alerte AND quantite > 0")->fetchColumn();
 
-// Derniers mouvements
-$stmt = $pdo->query("SELECT m.*, p.nom as produit_nom FROM movements m JOIN products p ON m.product_id = p.id ORDER BY m.created_at DESC LIMIT 5");
+// Derniers mouvements de stock, avec image produit
+$stmt = $pdo->query("
+    SELECT m.*, p.nom AS produit_nom, p.image AS produit_image
+    FROM stock_movements m 
+    JOIN products p ON m.product_id = p.id 
+    ORDER BY m.movement_date DESC 
+    LIMIT 5
+");
 $mouvements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -20,25 +35,31 @@ $mouvements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <ul>
     <li>Total produits : <?= $count ?></li>
     <li>Produits en rupture : <?= $rupture ?></li>
-    <li>Produits stock faible : <?= $faible ?></li>
+    <li>Produits avec stock faible : <?= $faible ?></li>
 </ul>
 
 <h3>Derniers mouvements</h3>
-<table border="1">
+<table border="1" cellpadding="8" cellspacing="0">
     <tr>
+        <th>Image</th>
         <th>Produit</th>
         <th>Type</th>
         <th>Quantité</th>
-        <th>Raison</th>
         <th>Date</th>
     </tr>
     <?php foreach ($mouvements as $mv): ?>
         <tr>
+            <td>
+                <?php if (!empty($mv['produit_image']) && file_exists($mv['produit_image'])): ?>
+                    <img src="<?= htmlspecialchars($mv['produit_image']) ?>" alt="Image produit" style="width:50px; height:auto; border-radius:4px;">
+                <?php else: ?>
+                    <span style="color: grey;">Aucune</span>
+                <?php endif; ?>
+            </td>
             <td><?= htmlspecialchars($mv['produit_nom']) ?></td>
-            <td><?= htmlspecialchars($mv['type']) ?></td>
-            <td><?= htmlspecialchars($mv['quantite']) ?></td>
-            <td><?= htmlspecialchars($mv['raison']) ?></td>
-            <td><?= htmlspecialchars($mv['created_at']) ?></td>
+            <td><?= htmlspecialchars($mv['movement_type']) ?></td>
+            <td><?= htmlspecialchars($mv['quantity']) ?></td>
+            <td><?= htmlspecialchars($mv['movement_date']) ?></td>
         </tr>
     <?php endforeach; ?>
 </table>

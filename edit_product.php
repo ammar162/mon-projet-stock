@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <h2>Modifier le produit</h2>
+<div class="form">
 <form action="" method="post">
     <input type="text" name="nom" value="<?= htmlspecialchars($product['nom']) ?>" required><br>
     <textarea name="description"><?= htmlspecialchars($product['description']) ?></textarea><br>
@@ -31,5 +32,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="number" name="seuil_alerte" value="<?= $product['seuil_alerte'] ?>" required><br>
     <button type="submit">Enregistrer</button>
 </form>
-
+</div>
 <?php include 'includes/footer.php'; ?>
