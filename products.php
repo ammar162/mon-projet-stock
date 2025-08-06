@@ -1,78 +1,132 @@
 <?php
 session_start();
-
-// Rediriger si l'utilisateur n'est pas connecté
 if (!isset($_SESSION['user'])) {
     header("Location: login.php");
     exit();
 }
 
-include 'includes/header.php';
 include 'includes/db.php';
+include 'includes/header.php';
 
-// Récupérer tous les produits
-$products = $pdo->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
+// Traitement de la recherche
+$search = $_GET['search'] ?? '';
+$search = htmlspecialchars($search);
+
+// Requête SQL
+if (!empty($search)) {
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE nom LIKE :search OR description LIKE :search");
+    $stmt->execute(['search' => '%' . $search . '%']);
+} else {
+    $stmt = $pdo->query("SELECT * FROM products");
+}
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Style CSS intégré -->
+<!-- Style tableau amélioré -->
 <style>
     body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
+        font-family: 'Segoe UI', sans-serif;
     }
-    .btn {
-        padding: 6px 12px;
+
+    .search-bar {
+        margin: 20px 0;
+    }
+
+    .search-bar input[type="text"] {
+        padding: 8px;
+        width: 250px;
         border-radius: 4px;
-        font-size: 14px;
+        border: 1px solid #ccc;
+    }
+
+    .search-bar button {
+        padding: 8px 14px;
+        background-color: #007bff;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-ajouter {
+        background-color: #3528a7ff;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 5px;
         text-decoration: none;
         display: inline-block;
-        margin: 2px;
+        margin-bottom: 10px;
     }
-    .btn-ajouter {
-        background-color: #007bff;
-        color: white;
-    }
-    .btn-ajouter:hover {
-        background-color: #0069d9;
-    }
-    .btn-modifier {
-        background-color: #ffc107;
-        color: black;
-    }
-    .btn-modifier:hover {
-        background-color: #e0a800;
-    }
-    .btn-supprimer {
-        background-color: #dc3545;
-        color: white;
-    }
-    .btn-supprimer:hover {
-        background-color: #c82333;
-    }
+
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: 15px;
     }
-    table th, table td {
-        padding: 10px;
-        border: 1px solid #ccc;
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
         text-align: center;
     }
-    table th {
+
+    th {
         background-color: #343a40;
         color: white;
     }
-    img {
+
+    tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    tr.low-stock {
+        background-color: #fff3cd;
+    }
+
+    img.product-img {
         width: 60px;
         height: auto;
         border-radius: 4px;
     }
+
+    .btn {
+        padding: 6px 10px;
+        font-size: 13px;
+        border-radius: 4px;
+        text-decoration: none;
+        margin: 0 2px;
+    }
+
+    .btn-modifier {
+        background-color: #ffc107;
+        color: black;
+    }
+
+    .btn-supprimer {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .stock-alert {
+        color: red;
+        font-weight: bold;
+    }
+
+    img.qr-img {
+        width: 60px;
+        height: 60px;
+    }
 </style>
 
-<h2>Liste des produits</h2>
+<h2>📦 Liste des produits</h2>
 
-<a href="add_product.php" class="btn btn-ajouter">➕ Ajouter un produit</a>
+<!-- Formulaire de recherche -->
+<form method="GET" class="search-bar">
+    <input type="text" name="search" placeholder="🔍 Rechercher un produit..." value="<?= $search ?>">
+    <button type="submit">Rechercher</button>
+</form>
+
+<a href="add_product.php" class="btn-ajouter">➕ Ajouter un produit</a>
 
 <table>
     <thead>
@@ -84,15 +138,16 @@ $products = $pdo->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
             <th>Quantité</th>
             <th>Seuil</th>
             <th>Actions</th>
+            <th>QR Code</th>
         </tr>
     </thead>
     <tbody>
         <?php if (count($products) > 0): ?>
             <?php foreach ($products as $product): ?>
-                <tr>
+                <tr class="<?= ($product['quantite'] <= $product['seuil_alerte']) ? 'low-stock' : '' ?>">
                     <td>
                         <?php if (!empty($product['image']) && file_exists($product['image'])): ?>
-                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="Image produit">
+                            <img src="<?= htmlspecialchars($product['image']) ?>" alt="Produit" class="product-img">
                         <?php else: ?>
                             <span style="color: grey;">Aucune</span>
                         <?php endif; ?>
@@ -100,17 +155,25 @@ $products = $pdo->query("SELECT * FROM products")->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($product['nom']) ?></td>
                     <td><?= htmlspecialchars($product['description']) ?></td>
                     <td><?= number_format($product['prix'], 2) ?> DH</td>
-                    <td><?= (int)$product['quantite'] ?></td>
+                    <td>
+                        <?= (int)$product['quantite'] ?>
+                        <?php if ($product['quantite'] <= $product['seuil_alerte']): ?>
+                            <div class="stock-alert">⚠ Stock faible</div>
+                        <?php endif; ?>
+                    </td>
                     <td><?= (int)$product['seuil_alerte'] ?></td>
                     <td>
                         <a href="edit_product.php?id=<?= $product['id'] ?>" class="btn btn-modifier">✏️ Modifier</a>
                         <a href="delete_product.php?id=<?= $product['id'] ?>" class="btn btn-supprimer" onclick="return confirm('Supprimer ce produit ?');">🗑️ Supprimer</a>
                     </td>
+                    <td>
+                        <img src="generate_qr.php?product_id=<?= $product['id'] ?>" alt="QR Code" class="qr-img">
+                    </td>
                 </tr>
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="7" style="color: grey;">Aucun produit trouvé.</td>
+                <td colspan="8" style="color: grey;">Aucun produit trouvé.</td>
             </tr>
         <?php endif; ?>
     </tbody>

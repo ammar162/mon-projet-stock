@@ -20,7 +20,7 @@ $mouvements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <style>
     a.add-button {
-        background-color: #4CAF50;
+        background-color: #1445c0ff;
         color: white;
         padding: 10px 18px;
         margin: 20px 0;
@@ -31,7 +31,7 @@ $mouvements = $stmt->fetchAll(PDO::FETCH_ASSOC);
         transition: background-color 0.3s ease;
     }
     a.add-button:hover {
-        background-color: #45a049;
+        background-color: #273dcaff;
     }
     table {
         width: 100%;
